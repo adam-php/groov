@@ -1,45 +1,82 @@
 import React, { useEffect, useState } from 'react';
-import { spotify } from '../lib/spotify';
-import { TrackList } from '../components/TrackList';
-import { Track } from '../types';
+import { getTopTracks, getRecentlyPlayed } from '@/lib/spotify';
+import { TrackList } from '@/components/TrackList';
+import { Track } from '@/types';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
-export const Home: React.FC = () => {
+const Home: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [topTracks, setTopTracks] = useState<Track[]>([]);
+  const [recentTracks, setRecentTracks] = useState<Track[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchTopTracks = async () => {
+    async function fetchData() {
       try {
-        const response = await spotify.recommendations.get({
-          seed_genres: ['pop', 'electronic'],
-          limit: 20,
-        });
-        setTopTracks(response.tracks);
-      } catch (error) {
-        console.error('Failed to fetch tracks:', error);
+        setIsLoading(true);
+        const [topTracksData, recentTracksData] = await Promise.all([
+          getTopTracks(10),
+          getRecentlyPlayed(10)
+        ]);
+
+        setTopTracks(topTracksData);
+        setRecentTracks(recentTracksData);
+        setError(null);
+      } catch (err) {
+        console.error('Failed to fetch tracks:', err);
+        setError('Failed to load tracks. Please try again later.');
       } finally {
         setIsLoading(false);
       }
-    };
+    }
 
-    fetchTopTracks();
+    fetchData();
   }, []);
 
   if (isLoading) {
+    return <LoadingSpinner />;
+  }
+
+  if (error) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
+        <div className="text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-primary hover:bg-primary/90 rounded-lg transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold mb-8">Welcome to Groov</h1>
-      <section>
-        <h2 className="text-2xl font-semibold mb-4">Recommended for you</h2>
-        <TrackList tracks={topTracks} />
-      </section>
-    </div>
+    <ScrollArea className="h-full">
+      <div className="p-6 space-y-8">
+        <section>
+          <h2 className="text-2xl font-bold mb-4">Your Top Tracks</h2>
+          {topTracks.length > 0 ? (
+            <TrackList tracks={topTracks} showHeader showAlbum />
+          ) : (
+            <p className="text-muted-foreground">No top tracks found</p>
+          )}
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-bold mb-4">Recently Played</h2>
+          {recentTracks.length > 0 ? (
+            <TrackList tracks={recentTracks} showHeader showAlbum />
+          ) : (
+            <p className="text-muted-foreground">No recently played tracks</p>
+          )}
+        </section>
+      </div>
+    </ScrollArea>
   );
 };
+
+export default Home;

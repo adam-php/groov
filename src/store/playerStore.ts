@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { PlayerState, Track } from '../types';
+import { setPlaybackVolume } from '../lib/spotify';
 
 interface PlayerStore extends PlayerState {
   setIsPlaying: (playing: boolean) => void;
@@ -24,7 +25,14 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
   setIsPlaying: (playing) => set({ isPlaying: playing }),
   setCurrentTrack: (track) => set({ currentTrack: track }),
   setQueue: (tracks) => set({ queue: tracks }),
-  setVolume: (volume) => set({ volume }),
+  setVolume: async (volume) => {
+    try {
+      await setPlaybackVolume(volume);
+      set({ volume });
+    } catch (error) {
+      console.error('Failed to set volume:', error);
+    }
+  },
   setProgress: (progress) => set({ progress }),
   toggleRepeat: () => {
     const repeat = get().repeat;

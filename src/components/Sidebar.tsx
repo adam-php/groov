@@ -1,6 +1,8 @@
 import React from 'react';
 import { Home, Search, Library, PlusCircle, LogOut } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { Button } from './ui/button';
+import { cn } from '@/lib/utils';
 
 const navigation = [
   { name: 'Home', icon: Home, path: '/' },
@@ -29,30 +31,37 @@ export const Sidebar: React.FC = () => {
 
         <nav className="space-y-1">
           {navigation.map((item) => (
-            <Link
+            <Button
               key={item.name}
-              to={item.path}
-              className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
+              variant="ghost"
+              className={cn(
+                'w-full justify-start space-x-3',
                 location.pathname === item.path
-                  ? 'bg-primary/20 text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-              }`}
+                  ? 'bg-primary/20 text-primary-foreground hover:bg-primary/30'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+              asChild
             >
-              <item.icon size={20} />
-              <span className="font-medium">{item.name}</span>
-            </Link>
+              <Link to={item.path}>
+                <item.icon size={20} />
+                <span className="font-medium">{item.name}</span>
+              </Link>
+            </Button>
           ))}
         </nav>
       </div>
 
       <div className="px-6 mt-8">
         <h2 className="text-muted-foreground font-medium px-4 mb-4">Your Playlists</h2>
-        <button className="flex items-center space-x-2 text-muted-foreground hover:text-foreground px-4 py-3 w-full rounded-xl transition-all hover:bg-muted group">
+        <Button
+          variant="ghost"
+          className="w-full justify-start space-x-2 text-muted-foreground hover:text-foreground group"
+        >
           <div className="p-2 rounded-lg bg-primary/20 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
             <PlusCircle size={18} />
           </div>
           <span className="font-medium">Create Playlist</span>
-        </button>
+        </Button>
       </div>
 
       <div className="mt-auto p-6">
@@ -62,9 +71,13 @@ export const Sidebar: React.FC = () => {
               <p className="text-xs text-muted-foreground">Logged in as</p>
               <p className="font-medium mt-1">John Doe</p>
             </div>
-            <button className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-muted-foreground hover:text-foreground"
+            >
               <LogOut size={18} />
-            </button>
+            </Button>
           </div>
         </div>
       </div>
